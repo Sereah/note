@@ -1,0 +1,10 @@
+OBJECT = main.o add.o
+
+add:$(OBJECT)
+	gcc -o add $(OBJECT)
+
+main.o:main.c
+	gcc -c main.c
+
+add.o:add.c
+	gcc -c add.c
