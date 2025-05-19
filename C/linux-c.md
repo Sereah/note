@@ -48,7 +48,7 @@ man手册使用分页查看器, 快捷键有：
 
 ### 使用程序的返回值
 
-`test -e 文件夹名`可以测试是否存在某个文件夹，存在时返回0，否则返回1，可以写出下列脚本去使用返回的结果然后打印信息。
+`test -e 文件夹名`可以测试是否存在某个文件夹，存在时返回0，否则返回1，可以写出下列脚本去使用返回的结果`$?`然后打印信息。
 
 ```shell
 #!/bin/bash
@@ -161,4 +161,101 @@ int myLib(int num)
 
 
 ### 编译切换C标准
+
+1. 使用`gcc -std<参数>`切换编译C标准
+2. 始终使用`gcc -Wall -Wextra -pedantic`选项参与编译
+
+
+### 系统调用
+
+1. 头文件`unistd.h`
+2. 举例使用系统函数`write`: ssize_t write(int fd, const void *buf, size_t count);
+
+> `size_t`参数表示字符的缓冲区大小，不能超出，否则警告，比如`hello, world\n`的长度是13
+```c
+#include <unistd.h>
+
+int main(void)
+{
+    write(1, "hello, world\n", 13);
+    return 0;
+}
+```
+
+3. 其他头文件：`sys/types.h`包含用户id的uid_t等, `sys/sysinfo.h`用于sysinfo函数，非linux的unix不可用，比如macos。
+
+> 系统调用出错时都返回-1
+> POSIX头文件手册是手册的一个特殊部分，没有在man man中列出。在Fedora和CentOS下，这部分称为0p；在Debian和Ubuntu下，它被称为7posix。
+
+
+### 功能测试宏
+一种编译时机制，用于控制头文件暴露的API范围，确保程序在不同标准或环境下能正确访问所需的系统接口。它们通过定义特定的宏来声明程序依赖的标准或扩展功能（如POSIX、GNU扩展等），从而影响头文件中的函数、变量和常量的可见性。
+
+- 举例：strdup函数需要定义功能测试宏`_XOPEN_SOURCE >= 500`
+    - 在头文件之前写上`#define _XOPEN_SOURCE 700`
+    - 或者在编译的时候加上参数`-D_XOPEN_SOURCE=700`
+
+> 当编译时不指定编译标准以及功能测试宏时会默认有编译标准和测试宏，当指定了编译标准时，默认的测试宏就没有了。
+> _XOPEN_SOURCE设置成700或更大与_POSIX_C_STANARD设置为200809或更大的效果相同, GCC默认设置_POSIX_C_STANARD
+> `man 7 feature_test_macros`手册阅读功能测试宏信息
+
+
+### 编译的4个步骤
+
+#### 预处理
+`gcc -E -P unistd.c -o unistd.i`
+- -E选项使GCC在对文件进行预处理之后停止，即只创建预处理文件。
+- -P选项是使预处理器不在预处理文件中包含行标记。我们想要干净的文件。
+- 所有的#include语句都被对应的头文件内容替换。任何宏也都会被实际的数字替换。
+- 预处理文件通常以.i作为扩展名。
+
+#### 编译
+`gcc -S unistd.c -o unistd.s`
+- -S选项，告诉GCC在编译过程完成后停止。
+- 汇编文件通常以.s作为扩展名。
+
+#### 汇编
+`gcc -c unistd.s -o unistd.o`
+
+#### 链接
+`gcc -o unistd.o -o unistd`
+
+
+### Makefile
+
+1. 默认make编译：`make unistd`执行的命令是`cc unistd.c -o unistd`
+2. 编写Makefile后，make执行的命令则是Makefile里的，Makefile适用于同一目录下的所有程序。
+> 默认情况下make假定传入的名称是源文件的名称，也是编译后二进制的文件名
+3. Makefile编写：
+    - 包含target（目标，比如文件或者伪命令），dependencies（依赖），commands（命令）
+    ```C
+    target: dependencies
+        commands
+    ```
+    - 变量替代重复命令，`NAME = value`，使用`$(NAME)`
+    - 内置变量，`$@`表示目标，`$^`表示所有依赖文件，`$<`表示第一个依赖文件
+    - 建议将编译和链接拆分开
+    ```c
+    CC=gcc
+    CFLAGS=-Wall -Wextra -pedantic -std=c9
+    TARGET=demo
+    OBJS=demo1.o demo2.o
+
+    $(TARGET): $(OBJS)
+        $(CC) $^ -o $@
+
+    demo1.o: demo1.c
+        $(CC) -c demo1.c -o demo1.o
+
+    demo2.o: demo2.c
+        $(CC) -c demo2.c -o demo2.o
+
+    ```
+
+4. 模式匹配方式编写
+    ```C
+    %.o: %.c
+        $(CC) -c $< -o $@
+    ```
+> `OBJS = $(SRCS:.c=.o)`可以将SRCS变量里的.c文件替换为.o文件。
 
