@@ -259,3 +259,63 @@ int main(void)
     ```
 > `OBJS = $(SRCS:.c=.o)`可以将SRCS变量里的.c文件替换为.o文件。
 
+
+### 错误处理
+
+大多数系统调用会在错误时设置`errno`宏，在系统调用返回-1时去检查error的值可以确定具体的错误信息，使用errno需要引入`errno.h`。
+
+#### strerror函数
+
+使用strerror函数可以替代人为遍历error宏，直接获得错误信息。
+
+```C
+int errnonum = errno;
+fprintf(stderr, "%s\n", strerror(errnonum));
+```
+
+#### perror函数
+
+perror会将错误信息直接打印到stderr流，只需要要传入通用错误字符串，函数会在传入的字符串后紧跟`:`，空格和错误信息。
+
+```C
+perror("Error");
+```
+
+> ubuntu中下载moreutils然后通过`errno -l`可以列出所有的错误宏。
+
+
+### 文件系统
+
+#### 文件名
+
+linux中文件名是指向文件索引节点的指针。文件索引节点包含文件的元数据(创建时间等信息)和指向数据块的指针。
+> 使用stat <file>可以查看文件的索引节点信息
+```C
+#include<stdio.h>
+#include<sys/types.h>
+#include<sys/stat.h>
+#include<unistd.h>
+#include<string.h>
+#include<errno.h>
+
+int main(int argc, char *argv[])
+{
+        struct stat file_stat;
+
+        if(argc != 2) {
+                fprintf(stderr, "Please use: %s <file>\n", argv[0]);
+                return 1;
+        }
+        if( stat(argv[1], &file_stat) == -1 ){
+                perror("Stat file error");
+                return errno;
+        }
+
+        printf("Inode: %lu\n", file_stat.st_ino);
+        return 0;
+}
+```
+
+
+
+
