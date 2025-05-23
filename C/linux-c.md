@@ -18,6 +18,8 @@ int main(int argc, char *argv[])
 
 ### man手册
 
+> sudo apt install manpages-posix-dev
+
 1. 第一章节：用户命令，比如`man 1 ls`
 2. 第二章节：系统调用，比如`man 2 open`
 3. 第三章节：库函数，比如`man 3 printf`
@@ -286,9 +288,6 @@ perror("Error");
 
 ### 文件系统
 
-#### 文件名
-
-linux中文件名是指向文件索引节点的指针。文件索引节点包含文件的元数据(创建时间等信息)和指向数据块的指针。
 > 使用stat <file>可以查看文件的索引节点信息
 ```C
 #include<stdio.h>
@@ -316,6 +315,51 @@ int main(int argc, char *argv[])
 }
 ```
 
+#### 文件名
 
+linux中文件名是指向文件索引节点的指针。文件索引节点包含文件的元数据(创建时间等信息)和指向数据块的指针。
 
+#### 链接
+
+硬链接就是文件名，软链接就是文件名的快捷方式。
+- 创建硬链接：
+    1. 可以使用系统调用`link`, `int link(const char *oldpath, const char *newpath);`。
+    2. 可以使用命令`ln`
+- 创建软链接：
+    1. 使用系统调用`symlink`, `int symlink(const char *target, const char *linkpath);`
+    2. 使用命令`ln -s`
+
+> 文件的硬链接默认是1，也就是这个文件名。文件夹的硬链接默认是2，除了自己`.`还有父目录`..`。
+
+#### 创建文件
+
+使用系统调用`int creat(const char *pathname, mode_t mode);`
+
+#### 更新文件时间戳
+
+使用系统调用`int utime(const char *filename, const struct utimbuf *times);`
+- 第二个参数传入NULL则更新为当前系统时间，否则更新为传入的结构体里的时间。
+
+#### 删除文件
+
+使用系统调用`int unlink(const char *pathname);`
+
+> unlink本质是解除文件的硬链接，当文件没有硬链接且在进程中没有打开时会释放内存，也就是不可以删除文件夹。
+
+#### 文件模式
+
+文件的完整模式是由6个八进制数组成，比如100755：
+- 10代表文件类型，可以用`man 7 inode`查看其他类型。
+- 0代表特殊权限位(SUID/SGID/Sticky Bit)没有任何值。
+    1. SUID: 4或者s，文件执行时以所有者身份运行。
+    2. SGID: 2或者s，文件执行时以所属组身份运行，文件夹中新建文件继承父目录组。
+    3. Sticky: 1或者t，目录内的文件仅允许文件所有者删除。
+- 755代表基本权限位，分别是所属用户权限，组权限和其他用户权限。
+
+修改权限使用系统调用`int chmod(const char *pathname, mode_t mode);`
+
+修改文件所有权使用系统调用`int chown(const char *pathname, uid_t owner, gid_t group);`
+> 传入的用户id和组id需要通过`getpwnam`和`getgrnam`系统调用获取
+
+#### 写入文件
 
