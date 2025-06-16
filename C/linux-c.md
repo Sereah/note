@@ -184,8 +184,9 @@ int main(void)
 }
 ```
 
-3. 其他头文件：`sys/types.h`包含用户id的uid_t等, `sys/sysinfo.h`用于sysinfo函数，非linux的unix不可用，比如macos。
+3. 其他头文件：`sys/types.h`包含用户id的uid_t等, `sys/sysinfo.h`用于sysinfo函数，非linux的unix不可用，比如macos。`
 
+> `man sys_types.h`查看types。
 > 系统调用出错时都返回-1
 > POSIX头文件手册是手册的一个特殊部分，没有在man man中列出。在Fedora和CentOS下，这部分称为0p；在Debian和Ubuntu下，它被称为7posix。
 
@@ -344,7 +345,7 @@ linux中文件名是指向文件索引节点的指针。文件索引节点包含
 
 使用系统调用`int unlink(const char *pathname);`
 
-> unlink本质是解除文件的硬链接，当文件没有硬链接且在进程中没有打开时会释放内存，也就是不可以删除文件夹。
+> unlink本质是解除文件的硬链接，当文件没有硬链接且在进程中没有打开时会释放内存，不可以删除文件夹。
 
 #### 文件模式
 
@@ -362,4 +363,79 @@ linux中文件名是指向文件索引节点的指针。文件索引节点包含
 > 传入的用户id和组id需要通过`getpwnam`和`getgrnam`系统调用获取
 
 #### 写入文件
+
+##### 用文件描述符写入
+1. 打开文件
+`int open(const char *pathname, int flags, mode_t mode);`
+- 第一个参数是文件名，第二个参数是带有模式位的宏，比如`O_CREAT|O_RDWR`表示如果不存在就创建它，以及允许读写操作，第三个参数是文件模式，当flags带有O_CREAT时需要传入文件的模式，返回值是文件描述符。
+
+2. 写入文件 
+` ssize_t write(int fd, const void *buf, size_t count);`
+- 第一个参数是文件描述符，第二个参数是写入的内容，第三个参数是内容的长度。
+
+3. 关闭文件
+`int close(int fd);`
+- 文件写入后会自动关闭，如果显示关闭文件，使用`close`函数。
+
+##### 用文件流写入
+1. 打开文件
+` FILE *fopen(const char *pathname, const char *mode);`
+- 传入文件路径和打开文件模式，模式是字符，比如`'w'`表示写入，返回值是FILE类型的指针，打开时判断指针是否为NULL。
+
+2. while循环读取输入的每行内容
+`char *fgets(char *s, int size, FILE *stream);`
+- 第一个参数定义的每行字符的缓冲来存储读取的字符串，比如`char linebuff[1024] = {0}`, 第二个参数是缓冲大小`sizeof(linebuff)`, 第三个参数是文件流，fopen的返回值，当fgets返回为NULL时表示读取完毕，退出循环。
+
+3. 写入文件
+`int fprintf(FILE *stream, const char *format, ...);`
+- 第一个参数是文件流，第二个传入每行的字符串`linebuff`
+
+4. 关闭流
+`int fclose(FILE *stream);`
+
+
+#### 读取文件
+
+##### 用文件描述符读取
+1. 打开文件
+- 同样使用`open`函数打开文件，此时flags使用`O_RDONLY`表示只读，不需要传入文件模式，文件模式传入会被忽略。
+
+2. 获取文件大小
+`int fstat(int fd, struct stat *statbuf);`
+- 传入打开的文件的描述符和stat结构体对象，通过`stat中的st.size`获取文件大小，单位字节。
+
+3. 读取文件
+`ssize_t read(int fd, void *buf, size_t count);`
+- 第一个参数是文件描述符，第二个是存储文件内容的字符数组，第三个是读取文件的大小，一般设定一个最大值，比较文件实际的大小来避免溢出。
+
+##### 用流读取文件
+
+1. 打开文件
+- 使用`fopen`函数，这次传入的mode是`'r'`
+
+2. 循环获取每一行并打印
+- 使用`fgets`函数读取每一行得到linebuff,然后`printf`打印出来。
+
+3. 关闭流
+
+> 拓展：某些场景需要使用二进制文件写入和读取来避免精度损失。
+
+
+### 进程
+
+#### bash命令
+
+1. `ptree`查看进程树
+> ubuntu 下载：sudo apt install psmisc
+- `ptree -A -p -s $$`查看当前进程的父进程和子进程
+
+2. `echo $$`查看当前进程号
+
+3. `jobs`显示后台进程
+
+4. `bg`/`fg`将进程带到后台/前台，后面跟jobs展示的进程序号。
+
+#### 控制和终止进程
+
+
 
