@@ -159,4 +159,93 @@ struct Person {
 
 ### 命名空间using
 
+#### 每个名字要有独立的声明
+
+- 不建议全局使用`using namespace`，会污染全局，建议使用`using std::cin; using std::cout;`单独定义。
+
+#### 头文件中不使用using
+
+- 头文件中使用using，会污染引用头文件的源文件。
+
+### string
+
+#### 初始化
+
+##### 直接初始化
+
+- `string s("hello"); string s{"hello"};` 在变量后面跟括号的是直接初始化。
+
+- `string s(10, 'c');` 这样可以定义10个连续的c字符。
+
+##### 拷贝初始化
+
+- 使用=的是拷贝初始化，目前cpp推荐列表初始化。
+
+#### 操作string
+
+##### 读写string
+
+```cpp
+int main() {
+    string s;
+    cout << "Input string: " << endl;
+    cin >> s;
+    cout << "The string is: " << s << endl;
+    return 0;
+}
+```
+
+##### 读取未知数量的字符
+
+- 通过while(cin >> s)判断输入流是否有效，直到遇到结束符。
+
+##### getline读取一整行
+
+###### 定义
+
+- getline参数一个是输入流，一个是字符串变量，当读取到换行符的时候停止读取，但是变量中并不包含换行符。
+
+###### 示例
+
+```cpp
+int main() {
+    string s;
+    cout << "Input string: " << endl;
+    while (getline(cin, s)) {
+        cout << s << endl;
+    }
+    return 0;
+}
+```
+
+##### string.empty
+
+- empty()函数返回字符串是否为空。
+
+##### string.size
+
+- size()函数返回字符串的长度。
+
+- 返回的类型是size_type，这是string特有的类型，无符号类型且能存下足够大的值。不要和有符号的int值作比较。
+
+##### for遍历string
+
+```cpp
+int main() {
+    const string s{"hello, world"};
+    for (const auto &c : s) {
+        std::cout << c;
+    }
+    return 0;
+}
+```
+
+### vector
+
+#### 概念
+
+- vector是一个集合类模板，模板类似于java的泛型。
+
+#### 初始化
+
 
