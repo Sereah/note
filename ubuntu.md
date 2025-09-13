@@ -10,3 +10,6 @@ file /system/lib/libiprouteutil.so
 
 #### 安装posix手册
 sudo apt install manpages-posix-dev
+
+#### 同步文件
+rsync -ah --info=progress2 --delete ./aosp-13 /media/luna/T7SSD/
