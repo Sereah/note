@@ -234,3 +234,16 @@
 ##### 解码出pcm
 
 - ffmpeg -i input.mp4 -c:a pcm_s16le -ar 44100 -ac 2 output.pcm
+
+
+### ffplay命令
+
+#### 播放yuv文件
+
+- ffplay -f rawvideo -pixel_format yuv420p -video_size 1280x720 -framerate 30 output.yuv
+
+#### 播放pcm文件
+
+- ffplay -f f32le -ch_layout stereo -sample_rate 48000 -i target.pcm
+
+ -ffplay -f s16le -ch_layout mono -sample_rate 16000 -i voice.pcm
