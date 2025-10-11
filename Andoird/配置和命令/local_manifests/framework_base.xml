@@ -1,0 +1,12 @@
+<manifest>
+    <!-- 移除官方 frameworks/base -->
+    <remove-project name="platform/frameworks/base" />
+
+    <!-- 指向你的 GitHub 仓库 -->
+    <remote name="github" fetch="https://github.com/" />
+
+    <project path="frameworks/base"
+             name="Sereah/framework_base"
+             remote="github"
+             revision="master" />
+</manifest>

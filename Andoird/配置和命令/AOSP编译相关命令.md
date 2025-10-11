@@ -30,3 +30,24 @@ sudo ln -s libtinfo.so.6 libtinfo.so.5
 2. export ANDROID_PRODUCT_OUT=<img路径>
 3. fastboot flashall -w
 
+
+#### asfp 查看android11源码的问题
+
+- 问题：提示缺少module_bp_java_deps.json和module_bp_cc_deps.json
+- 解决：
+echo "export SOONG_COLLECT_JAVA_DEPS=true" >> ~/.bashrc
+echo "export SOONG_COLLECT_CC_DEPS=true" >> ~/.bashrc
+source ~/.bashrc
+添加这两个环境变量，然后重新make一下。
+
+
+#### 清除编译的apk，不清除中间件
+
+make installclean
+
+
+#### 保存framework/base的修改
+
+1. 将源码copy一份，2G以内，推送到自己的github
+2. 在.repo文件夹中将local_manifests文件夹放进去
+3. 删除原有的framework/base.git，重新repo
