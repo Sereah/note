@@ -109,7 +109,7 @@
 
 - 使用函数`AVCodecContext *avcodec_alloc_context3(const AVCodec *codec);`。
 
-#### 5.拷贝AVCodecParameters数据到解码器上下文
+#### 5.拷贝stream中的AVCodecParameters数据到解码器上下文
 
 - 使用函数`int avcodec_parameters_to_context(AVCodecContext *codec, const struct AVCodecParameters *par);`。
 
@@ -133,15 +133,20 @@
 
 - 判断数据属于视频流`if (packet->stream_index == videoStream->index)`。
 
-- 将数据发送到解码器上下文`if (avcodec_send_packet(codec_context, packet) == 0)`。
+- 将数据包发送到解码器上下文做解码操作(异步)`if (avcodec_send_packet(codec_context, packet) == 0)`。
 
-- 从解码上下文中获取数据帧`while (avcodec_receive_frame(codec_context, frame) == 0)`。
+- 从解码上下文中获取解码后的数据帧`while (avcodec_receive_frame(codec_context, frame) == 0)`。
 
-#### 10.写入YUV数据
+#### 10.写入YUV数据(YUV420P)
 
 ##### Y平面
 
 ```c++
+// fwrite的参数分别是：起始位置地址，每次写入的字节数，写入多少个字节数，目标文件
+// 平面数据就类似于矩阵，存储于二维数组，一行一行写。
+// frame->data[0]就是第0行第0列的地址
+// 因为每行的字节数不一样，为了对齐，每行的长度用linesize[0]表示，实际数据宽度是frame->width
+// YUV420P，Y平面的宽高都是一倍，U和V的宽高都是1/2，其中data数组0代表Y平面的首地址，1表示U，2表示V
 for (int i = 0; i < frame->height; i++) {
     fwrite(frame->data[0] + i * frame->linesize[0], 1, frame->width, yuv_file);
 }
